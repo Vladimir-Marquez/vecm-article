@@ -1,17 +1,15 @@
 ---
-title: "VECM artículo"
-author: "Vladimir Marquez Stone"
-date: "2025-08-25"
+  title: "The expansive wave of the fifth long cycle in the United States: empirical evidence from the rate of profit 1940-2023"
+author: "Vladimir Marquez Stone, Angelica Maza, Seyka Sandoval"
+date: "2025-08-15"
 output:
   pdf_document: default
-  html_document: default
+html_document: default
 ---
-
-```{r setup, include=FALSE}
+  
+  ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-install.packages(c("xfun","rmarkdown","knitr","tinytex","readxl"))
 library(readxl)
 library(urca)
 library(vars)
@@ -19,68 +17,67 @@ library(tseries)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
-set.seed(20250815)  
-tinytex::install_tinytex()
 
-# 1) Reading data
+# --- 1) Reading data
 # Expecting columns: year, profit, surplusvalue, occ (rename to what you have)
 data <- read_xlsx("mydata.xlsx", sheet = "Sheet1")
 summary(data)
 
-
-# 2) Building a multivariate time series (Annual data from 1940 to 2023)
+# --- 2) Building time series
+# Example for annual data from 1940 to 2023:
 Y <- ts(data[, c("profit","surplusvalue","occ")],
         start = min(data$year), frequency = 1)
 
-# 3) Selecting lags
+# --- 3) Selecting lags
 sel <- VARselect(Y, lag.max = 6, type = "const")
 sel$selection
 K <- as.numeric(sel$selection["AIC(n)"])  # pick AIC/HQ/SC per your preference
 summary(sel)
 
-# 4) Performing Johansen test
+# --- 4) Performing Johansen test
 joh <- ca.jo(Y, type = "trace", ecdet = "const", K = 2, spec = "transitory")
 summary(joh)
-# Decide cointegration rank r from the trace test/crit values:
-r <- 1  
+# Decide cointegration rank r from the trace tests:
+r <- 1
 
-# 5) Estimat ing Vector Error Correction Model
+# --- 5) Estimating VECM 
 vecm_fit <- cajorls(joh, r = r)
 alpha <- joh@V[, 1:r, drop = FALSE]
 beta  <- joh@W[, 1:r, drop = FALSE]
 alpha; beta
 
-# 6) Converting to VAR form and computing IRFs
+# Extracting coefficients 
+coef_table <- coef(vecm_fit$rlm)
+print(coef_table)
+
+# --- 6) Converting to VAR form and compute IRFs
 vec_as_var <- vec2var(joh, r = r)
 
 set.seed(123)
 ir <- irf(vec_as_var, n.ahead = 20, boot = TRUE, runs = 1000, ci = 0.95, ortho = TRUE)
 
 
-# 7) Generating IRF plots 
+# --- 7) IRF plots 
 make_irf_df <- function(ir_obj) {
   out <- list()
   impulses <- names(ir_obj$irf)
-
   for (imp in impulses) {
     mat   <- ir_obj$irf[[imp]]
     lower <- ir_obj$Lower[[imp]]
     upper <- ir_obj$Upper[[imp]]
-
-  for (resp in colnames(mat)) {
-    out[[length(out) + 1]] <- data.frame(
-      h        = 0:(nrow(mat) - 1),
-      irf      = mat[, resp],
-      lower    = lower[, resp],
-      upper    = upper[, resp],
-      impulse  = imp,
-      response = resp
+    for (resp in colnames(mat)) {
+      out[[length(out) + 1]] <- data.frame(
+        h        = 0:(nrow(mat) - 1),
+        irf      = mat[, resp],
+        lower    = lower[, resp],
+        upper    = upper[, resp],
+        impulse  = imp,
+        response = resp
       )
     }
   }
-
-  dplyr::bind_rows(out)  # <- return value
-}                        # <- closes the function
+  bind_rows(out)
+}
 
 ir_df <- make_irf_df(ir)
 
@@ -88,21 +85,20 @@ ggplot(ir_df, aes(x = h, y = irf)) +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
   geom_line() +
   facet_grid(response ~ impulse, scales = "free_y") +
-  labs(
-    x = "Horizon", y = "IRF",
-    title = "IRFs from VECM (converted to VAR form)",
-    subtitle = paste0("K (levels lags) = ", K, ", rank r = ", r,
-                      ", ordering = ", paste(colnames(Y), collapse = " -> "))
-  ) +
+  labs(x = "Horizon", y = "IRF",
+       title = "IRFs from VECM (converted to VAR form)",
+       subtitle = paste0("K (levels lags) = ", K, ", rank r = ", r, 
+                         ", ordering = ", paste(colnames(Y), collapse = " → "))) +
   theme_minimal(base_size = 12)
-  
-summary(joh)
-summary(ir)
 
-#8) Cumulative Impulse Response Functions 
+summary(joh)
+summary(irf)
+
+# --- 8) CUMULATIVE IRFs 
 irc <- irf(vec_as_var, n.ahead = 20, boot = TRUE, runs = 500, ci = 0.95, ortho = TRUE, cumulative = TRUE)
 plot(irc)
 
-# 9) Forecast Error Variance Decomposition
+# --- 9) Forecast Error Variance Decomposition
 fe <- fevd(vec_as_var, n.ahead = 20)
 plot(fe)
+

@@ -1,6 +1,3 @@
-# scripts/00_fetch_clean.R
-# Purpose: read raw Excel, clean/standardize vars, sanity-checks, save CSV
-
 # ---- packages ----
 suppressPackageStartupMessages({
   library(readxl)
@@ -30,11 +27,10 @@ pick_first <- function(df, candidates) {
 }
 
 map <- list(
-  year          = pick_first(raw, c("year", "anio")),
+  year          = pick_first(raw, c("year", "anio", "año")),
   profit        = pick_first(raw, c("profit", "profit_rate", "r", "profitrate")),
   surplusvalue  = pick_first(raw, c("surplusvalue", "surplus_value", "s", "surplus")),
-  occ           = pick_first(raw, c("occ", "organic_composition_of_capital",
-                                    "organiccomposition", "organiccomp"))
+  occ           = pick_first(raw, c("occ", "organic_composition_of_capital", "organiccomposition", "organiccomp"))
 )
 
 missing <- names(map)[is.na(unlist(map))]
@@ -53,6 +49,7 @@ data <- raw %>%
   )
 
 # ---- coerce types ----
+# year -> integer; numeric vars -> numeric (log non-numeric coercions)
 data <- data %>%
   mutate(
     year = suppressWarnings(as.integer(year)),
@@ -66,30 +63,29 @@ cat("NAs after numeric coercion (profit, surplusvalue, occ): ",
 
 # ---- basic sanity checks ----
 cat("\n[Sanity checks]\n")
-data <- data %>% arrange(year)
-yr <- sort(unique(na.omit(data$year)))
-cat("Rows:", nrow(data),
-    " | Year range:", min(yr, na.rm = TRUE), "???", max(yr, na.rm = TRUE), "\n")
+cat("Rows:", nrow(data), " | Year range:", min(data$year, na.rm = TRUE), "–", max(data$year, na.rm = TRUE), "\n")
 
 # warn if gaps in years
+yr <- sort(unique(na.omit(data$year)))
 gaps <- setdiff(seq(min(yr), max(yr)), yr)
 if (length(gaps)) cat("Warning: missing years detected:", paste(gaps, collapse = ", "), "\n")
 
-# drop rows with missing required values
+# ---- drop rows with any NA in required vars ----
 before <- nrow(data)
 data <- drop_na(data, year, profit, surplusvalue, occ)
-cat("Dropped rows with missing required values:", before - nrow(data), "\n")
+dropped <- before - nrow(data)
+cat("Dropped rows with missing required values:", dropped, "\n")
 
-# optional: enforce/notify start year
+# optional: enforce start year (edit if your series differs)
 if (!isTRUE(min(data$year) == 1940)) {
-  cat("Note: start year is", min(data$year), "(not 1940). Adjust analysis if needed.\n")
+  cat("Note: start year is", min(data$year), "(not 1940). Adjust in your analysis if needed.\n")
 }
 
-# ---- final summary & save ----
-cat("\n[Final summary]\n"); print(summary(data))
+# ---- final summary ----
+cat("\n[Final summary]\n")
+print(summary(data))
 
+# ---- save cleaned CSV ----
 dir.create(dirname(OUT_PATH), showWarnings = FALSE, recursive = TRUE)
 write.csv(data, OUT_PATH, row.names = FALSE)
 cat("\nSaved cleaned data to:", OUT_PATH, "\n")
-
-invisible(data)
