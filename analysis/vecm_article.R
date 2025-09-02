@@ -7,6 +7,11 @@ output:
 html_document: default
 ---
   
-```{r setup, include=FALSE}
+  ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+install.packages("renv")
+renv::init()        # in the project root
+renv::snapshot()    # after you’ve installed the packages you use
+# later, others run: renv::restore()
