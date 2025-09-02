@@ -8,3 +8,18 @@ renv/staging/
 Thumbs.db
 # outputs
 figs/
+renv/library/
+renv/staging/
+renv/profiles/*/library/
+renv/library/
+renv/staging/
+renv/profiles/*/library/
+renv/library/
+renv/staging/
+renv/profiles/*/library/
+renv/library/
+renv/staging/
+renv/profiles/*/library/
+renv/library/
+renv/staging/
+renv/profiles/*/library/
