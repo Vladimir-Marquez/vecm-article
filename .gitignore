@@ -1,31 +1,25 @@
-﻿.Rhistory
+# R history and session files
+.Rhistory
 .RData
 .Rproj.user/
 .Ruserdata
+
+# renv (only keep lockfile and activate/settings under version control)
 renv/library/
 renv/staging/
+renv/profiles/*/library/
+
+# OS junk files
 .DS_Store
 Thumbs.db
-# outputs
+
+# Figures or generated outputs
 figs/
-renv/library/
-renv/staging/
-renv/profiles/*/library/
-renv/library/
-renv/staging/
-renv/profiles/*/library/
-renv/library/
-renv/staging/
-renv/profiles/*/library/
-renv/library/
-renv/staging/
-renv/profiles/*/library/
-renv/library/
-renv/staging/
-renv/profiles/*/library/
-renv/library/
-renv/staging/
-renv/profiles/*/library/
-renv/library/
-renv/staging/
-renv/profiles/*/library/
+
+# LaTeX / knitr build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.tex
+*.pdf
