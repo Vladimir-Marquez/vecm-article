@@ -30,7 +30,7 @@ vecm-article/
 
 │  └─ mydata.csv 
 
-├─ packages/                    
+├─ R/                    
 
 │  └─ \_packages.R
 
@@ -53,6 +53,18 @@ vecm-article/
 ├─ README.md
 
 └─ renv.lock
+
+
+## How to reproduce
+
+1. Clone the repository  
+2. Open in R (or RStudio)  
+3. Run:
+
+```r
+install.packages("renv")
+renv::restore()
+rmarkdown::render("analysis/vecm_article.Rmd")
 
 
 
