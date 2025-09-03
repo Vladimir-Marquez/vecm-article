@@ -16,44 +16,25 @@ This repository contains the code and data cleaning for my collaboration on the 
 
 vecm-article/
 
-
-
-├─ analysis/
-
-│  └─ vecm\_article.R
-
-│  └─ vecm\_article.Rmd  
-
-├─ data/
-
-│  └─ mydata.xlsx
-
-│  └─ mydata.csv 
-
 ├─ R/                    
-
 │  └─ \_packages.R
-
+├─ analysis/
+│  └─ vecm\_article.R
+│  └─ vecm\_article.Rmd  
+├─ data/
+│  └─ mydata.xlsx
+│  └─ mydata.csv 
 ├─ renv/
-
 |  └─ activate.R              
-
 |  └─ settings.json
-
 ├─ scripts/                    
-
 │  └─ 00\_fetch\_clean.R
-
 ├─  .RProfile
-
 ├─ .gitignore
-
 ├─ LICENSE.txt
-
 ├─ README.md
-
 └─ renv.lock
-
+```
 
 ## How to reproduce
 
@@ -65,6 +46,6 @@ vecm-article/
 install.packages("renv")
 renv::restore()
 rmarkdown::render("analysis/vecm_article.Rmd")
-
+```
 
 
